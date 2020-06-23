@@ -1,7 +1,7 @@
 import numpy as np
 
 
-KGE_METHOD = 'TransE'
+KGE_METHOD = 'TransD'
 ENTITY_EMBEDDING_DIM = 50
 
 
