@@ -1,0 +1,22 @@
+# from collections import Counter
+
+# split each item in the train set to multiple items according to the enitities that appear in it
+def split_by_entities(file, output_file):
+    reader = open(file, encoding='utf-8')
+    writer = open(output_file, 'w', encoding='utf-8')
+    # different samples might have the same user-entity combination, we don't need duplicates
+    seen_lines = dict()
+    for line in reader:
+        user, words_id, entities_id, is_click = line.split('\t')
+        entities_id = entities_id.split(',')
+        unique_entities = list(dict.fromkeys(entities_id))
+        for ent in unique_entities:
+            line = '\t'.join([user, ent, is_click])
+            if ent != '0' and ent != ',' and line not in seen_lines:
+                writer.write(line)
+                seen_lines[line] = 1
+    reader.close()
+    writer.close()
+
+split_by_entities('train.txt', 'train_kgcn.txt')
+# split_by_entities('test.txt', 'test_kgcn.txt')
