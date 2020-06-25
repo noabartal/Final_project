@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from model import KGCN
-
+import sys
 
 def train(args, data, show_loss, show_topk):
     n_user, n_item, n_entity, n_relation = data[0], data[1], data[2], data[3]
@@ -25,12 +25,13 @@ def train(args, data, show_loss, show_topk):
             while start + args.batch_size <= train_data.shape[0]:
                 _, loss = model.train(sess, get_feed_dict(model, train_data, start, start + args.batch_size))
                 start += args.batch_size
-                if show_loss:
-                    print(start, loss)
+            if show_loss:
+                print(start, loss)
 
             # CTR evaluation
             train_auc, train_f1 = ctr_eval(sess, model, train_data, args.batch_size)
             eval_auc, eval_f1 = ctr_eval(sess, model, eval_data, args.batch_size)
+            # print("test data: ", test_data)
             test_auc, test_f1 = ctr_eval(sess, model, test_data, args.batch_size)
 
             print('epoch %d    train auc: %.4f  f1: %.4f    eval auc: %.4f  f1: %.4f    test auc: %.4f  f1: %.4f'
@@ -48,6 +49,8 @@ def train(args, data, show_loss, show_topk):
                 for i in recall:
                     print('%.4f\t' % i, end='')
                 print('\n')
+
+            # print(model.item_embeddings.eval())
 
     # np.save("kgcn_entity_embeddings", model.item_embeddings) # TODO: added this
 

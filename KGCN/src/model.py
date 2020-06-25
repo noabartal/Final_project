@@ -118,6 +118,8 @@ class KGCN(object):
     def eval(self, sess, feed_dict):
         labels, scores = sess.run([self.labels, self.scores_normalized], feed_dict)
         auc = roc_auc_score(y_true=labels, y_score=scores)
+        # print("scores: ", scores)
+        # print("labels: ", labels)
         scores[scores >= 0.5] = 1
         scores[scores < 0.5] = 0
         f1 = f1_score(y_true=labels, y_pred=scores)
