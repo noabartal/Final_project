@@ -25,9 +25,10 @@ def train(args, train_data, test_data):
             np.random.shuffle(start_list)
             for start in start_list:
                 end = start + args.batch_size
-                model.train(sess, get_feed_dict(model, train_data, start, end))
-
+                _, loss = model.train(sess, get_feed_dict(model, train_data, start, end))
+            print("loss: ", loss)
             # evaluation
-            train_auc = model.eval(sess, get_feed_dict(model, train_data, 0, train_data.size))
+            # train_auc = model.eval(sess, get_feed_dict(model, train_data, 0, train_data.size))
             test_auc = model.eval(sess, get_feed_dict(model, test_data, 0, test_data.size))
-            print('epoch %d    train_auc: %.4f    test_auc: %.4f' % (step, train_auc, test_auc))
+            # print('epoch %d    train_auc: %.4f    test_auc: %.4f' % (step, train_auc, test_auc))
+            print('epoch %d     test_auc: %.4f' % (step, test_auc))

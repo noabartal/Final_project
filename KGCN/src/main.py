@@ -6,6 +6,8 @@ from train import train
 
 np.random.seed(555)
 
+# import os
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 parser = argparse.ArgumentParser()
 
@@ -49,15 +51,26 @@ parser.add_argument('--lr', type=float, default=5e-4, help='learning rate')
 parser.add_argument('--ratio', type=float, default=1, help='size of training dataset')
 '''
 
+# parser.add_argument('--dataset', type=str, default='news', help='which dataset to use')
+# parser.add_argument('--aggregator', type=str, default='sum', help='which aggregator to use')
+# parser.add_argument('--n_epochs', type=int, default=40, help='the number of epochs')
+# parser.add_argument('--neighbor_sample_size', type=int, default=16, help='the number of neighbors to be sampled')
+# parser.add_argument('--dim', type=int, default=50, help='dimension of user and entity embeddings')
+# parser.add_argument('--n_iter', type=int, default=1, help='number of iterations when computing entity representation')
+# parser.add_argument('--batch_size', type=int, default=64, help='batch size')
+# parser.add_argument('--l2_weight', type=float, default=0.001, help='weight of l2 regularization')
+# parser.add_argument('--lr', type=float, default=0.0001, help='learning rate')
+# parser.add_argument('--ratio', type=float, default=1, help='size of training dataset')
+
 parser.add_argument('--dataset', type=str, default='news', help='which dataset to use')
 parser.add_argument('--aggregator', type=str, default='sum', help='which aggregator to use')
-parser.add_argument('--n_epochs', type=int, default=500, help='the number of epochs')
-parser.add_argument('--neighbor_sample_size', type=int, default=16, help='the number of neighbors to be sampled')
-parser.add_argument('--dim', type=int, default=32, help='dimension of user and entity embeddings')
-parser.add_argument('--n_iter', type=int, default=1, help='number of iterations when computing entity representation')
-parser.add_argument('--batch_size', type=int, default=64, help='batch size')
-parser.add_argument('--l2_weight', type=float, default=0.01, help='weight of l2 regularization')
-parser.add_argument('--lr', type=float, default=0.00001, help='learning rate')
+parser.add_argument('--n_epochs', type=int, default=25, help='the number of epochs')
+parser.add_argument('--neighbor_sample_size', type=int, default=8, help='the number of neighbors to be sampled')
+parser.add_argument('--dim', type=int, default=100, help='dimension of user and entity embeddings')
+parser.add_argument('--n_iter', type=int, default=4, help='number of iterations when computing entity representation')
+parser.add_argument('--batch_size', type=int, default=32, help='batch size')
+parser.add_argument('--l2_weight', type=float, default=1e-5, help='weight of l2 regularization')
+parser.add_argument('--lr', type=float, default=5e-5, help='learning rate')
 parser.add_argument('--ratio', type=float, default=1, help='size of training dataset')
 
 show_loss = True

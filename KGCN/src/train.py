@@ -50,9 +50,11 @@ def train(args, data, show_loss, show_topk):
                     print('%.4f\t' % i, end='')
                 print('\n')
 
-            # print(model.item_embeddings.eval())
+            # print(model.entity_emb_matrix.eval()[0, :])
 
-    # np.save("kgcn_entity_embeddings", model.item_embeddings) # TODO: added this
+        res = model.entity_emb_matrix.eval()
+        print(res.shape)
+        np.save("kgcn_entity_embeddings_"+str(args.dim), res)
 
 
 

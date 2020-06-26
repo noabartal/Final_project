@@ -26,7 +26,11 @@ class DKN(object):
     def _build_model(self, args):
         with tf.name_scope('embedding'):
             word_embs = np.load('../data/news/word_embeddings_' + str(args.word_dim) + '.npy')
-            entity_embs = np.load('../data/kg/entity_embeddings_' + args.KGE + '_' + str(args.entity_dim) + '.npy')
+            # entity_embs = np.load('../data/kg/entity_embeddings_' + args.KGE + '_' + str(args.entity_dim) + '.npy')
+            entity_embs = np.load('../KGCN/src/kgcn_entity_embeddings_100.npy')
+
+            print("entity embs shape: ", entity_embs.shape)
+
             self.word_embeddings = tf.Variable(word_embs, dtype=np.float32, name='word')
             self.entity_embeddings = tf.Variable(entity_embs, dtype=np.float32, name='entity')
             self.params.append(self.word_embeddings)
@@ -147,7 +151,7 @@ class DKN(object):
             self.optimizer = tf.train.AdamOptimizer(args.lr).minimize(self.loss)
 
     def train(self, sess, feed_dict):
-        return sess.run(self.optimizer, feed_dict)
+        return sess.run([self.optimizer, self.loss], feed_dict)
 
     def eval(self, sess, feed_dict):
         labels, scores = sess.run([self.labels, self.scores], feed_dict)
