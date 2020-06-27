@@ -1,20 +1,28 @@
 MAX_IDX = 3777
 
 # split each item in the train set to multiple items according to the enitities that appear in it
-def split_by_entities(file, output_file):
+def split_by_entities(file, output_file, user_dict):
     reader = open(file, encoding='utf-8')
     writer = open(output_file, 'w', encoding='utf-8')
     # different samples might have the same user-entity combination, we don't need duplicates
     seen_lines = dict()
     # count uniqe entites in train set
     all_entities = dict()
+    # map users to indices from 0 to len(users)
+    curr_user = 0
     for line in reader:
         user, words_id, entities_id, is_click = line.split('\t')
+        if user in user_dict:
+            user_idx = user_dict[user]
+        else:
+            user_idx = curr_user
+            curr_user += 1
+            user_dict[user] = user_idx
         entities_id = entities_id.split(',')
         unique_entities = list(dict.fromkeys(entities_id))
         for ent in unique_entities:
             all_entities[ent] = 1
-            line = '\t'.join([user, ent, is_click])
+            line = '\t'.join([str(user_idx), ent, is_click])
             if ent != '0' and ent != ',' and line not in seen_lines:
                 writer.write(line)
                 seen_lines[line] = 1
@@ -55,7 +63,9 @@ def kg_to_idx():
         writer.write('%s\t%s\t%s\n' % (idx_1, relation, idx_2))
     writer.close()
 
-# split_by_entities('train.txt', 'train_kgcn.txt')
-# split_by_entities('test.txt', 'test_kgcn.txt')
+
+user_dict = dict()
+split_by_entities('train.txt', 'train_kgcn.txt', user_dict)
+split_by_entities('test.txt', 'test_kgcn.txt', user_dict)
 
 # kg_to_idx()
