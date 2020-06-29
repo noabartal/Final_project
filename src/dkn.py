@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from sklearn.metrics import roc_auc_score
-
+DATASET = 'books'
 
 class DKN(object):
     def __init__(self, args):
@@ -25,9 +25,9 @@ class DKN(object):
 
     def _build_model(self, args):
         with tf.name_scope('embedding'):
-            word_embs = np.load('../data/news/word_embeddings_' + str(args.word_dim) + '.npy')
-            # entity_embs = np.load('../data/kg/entity_embeddings_' + args.KGE + '_' + str(args.entity_dim) + '.npy')
-            entity_embs = np.load('../KGCN/src/kgcn_entity_embeddings_100.npy')
+            word_embs = np.load('../data/books/word_embeddings_' + str(args.word_dim) + '.npy')
+            entity_embs = np.load('../data/books/kg/entity_embeddings_' + args.KGE + '_' + str(args.entity_dim) + '.npy')
+            # entity_embs = np.load('../KGCN/src/kgcn_entity_embeddings_' + str(args.entity_dim) + '.npy')
 
             print("entity embs shape: ", entity_embs.shape)
 
@@ -38,7 +38,7 @@ class DKN(object):
 
             if args.use_context:
                 context_embs = np.load(
-                    '../data/kg/context_embeddings_' + args.KGE + '_' + str(args.entity_dim) + '.npy')
+                    '../data/books/kg/context_embeddings_' + args.KGE + '_' + str(args.entity_dim) + '.npy')
                 self.context_embeddings = tf.Variable(context_embs, dtype=np.float32, name='context')
                 self.params.append(self.context_embeddings)
 

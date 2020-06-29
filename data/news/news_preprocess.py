@@ -5,10 +5,11 @@ import numpy as np
 
 PATTERN1 = re.compile('[^A-Za-z]')
 PATTERN2 = re.compile('[ ]{2,}')
-WORD_FREQ_THRESHOLD = 2
+WORD_FREQ_THRESHOLD = 1
 ENTITY_FREQ_THRESHOLD = 1
 MAX_TITLE_LENGTH = 10
 WORD_EMBEDDING_DIM = 50
+DATASET = 'books'
 
 word2freq = {}
 entity2freq = {}
@@ -38,8 +39,12 @@ def count_word_and_entity_freq(files):
                     word2freq[s] += 1
 
             # count entity frequency
+            # if DATASET is not 'books':
             for s in entities.split(';'):
-                entity_id = s[:s.index(':')]
+                if DATASET is not 'books':
+                    entity_id = s[:s.index(':')]
+                else:
+                    entity_id = s
                 if entity_id not in entity2freq:
                     entity2freq[entity_id] = 1
                 else:
@@ -61,7 +66,11 @@ def construct_word2id_and_entity2id():
             cnt += 1
     print('- word size: %d' % len(word2index))
 
-    writer = open('../kg/entity2index.txt', 'w', encoding='utf-8')
+    if DATASET is not 'books':
+        path = 'kg/'
+    else:
+        path = '../books/kg/'
+    writer = open(path + 'entity2index.txt', 'w', encoding='utf-8')
     cnt = 1
     for entity, freq in entity2freq.items():
         if freq >= ENTITY_FREQ_THRESHOLD:
@@ -105,8 +114,10 @@ def encoding_title(title, entities):
     :param entities: entities contained in the news title
     :return: encodings of the title with respect to word and entity, respectively
     """
-    local_map = get_local_word2entity(entities)
+    if DATASET is not 'books':
+        local_map = get_local_word2entity(entities)
 
+    # local_map = get_local_word2entity(entities)
     array = title.split(' ')
     word_encoding = ['0'] * MAX_TITLE_LENGTH
     entity_encoding = ['0'] * MAX_TITLE_LENGTH
@@ -115,12 +126,15 @@ def encoding_title(title, entities):
     for s in array:
         if s in word2index:
             word_encoding[point] = str(word2index[s])
-            if s in local_map:
-                entity_encoding[point] = str(local_map[s])
+            if DATASET is not 'books' and s in local_map:
+                if s in local_map:
+                    entity_encoding[point] = str(local_map[s])
             point += 1
         if point == MAX_TITLE_LENGTH:
             break
     word_encoding = ','.join(word_encoding)
+    if DATASET is 'books':
+        entity_encoding[0] = str(entities)
     entity_encoding = ','.join(entity_encoding)
     return word_encoding, entity_encoding
 
@@ -153,15 +167,16 @@ def get_word2vec_model():
 
 
 if __name__ == '__main__':
+    path = '../' + DATASET
     print('counting frequencies of words and entities ...')
-    count_word_and_entity_freq(['raw_train.txt', 'raw_test.txt'])
+    count_word_and_entity_freq([path+'/raw_train.txt', path+'/raw_test.txt'])
 
     print('constructing word2id map and entity to id map ...')
     construct_word2id_and_entity2id()
 
     print('transforming training and test dataset ...')
-    transform('raw_train.txt', 'train.txt')
-    transform('raw_test.txt', 'test.txt')
+    transform(path+'/raw_train.txt', path+'/train.txt')
+    transform(path+'/raw_test.txt', path+'/test.txt')
 
     print('getting word embeddings ...')
     embeddings = np.zeros([len(word2index) + 1, WORD_EMBEDDING_DIM])
@@ -170,4 +185,4 @@ if __name__ == '__main__':
         embedding = model[word] if word in model.wv.vocab else np.zeros(WORD_EMBEDDING_DIM)
         embeddings[index + 1] = embedding
     print('- writing word embeddings ...')
-    np.save(('word_embeddings_' + str(WORD_EMBEDDING_DIM)), embeddings)
+    np.save((path+'/word_embeddings_' + str(WORD_EMBEDDING_DIM)), embeddings)

@@ -3,6 +3,7 @@ import numpy as np
 from collections import namedtuple
 
 # pd.set_option('display.expand_frame_repr', False)
+DATASET = 'books'
 
 Data = namedtuple('Data', ['size', 'clicked_words', 'clicked_entities', 'news_words', 'news_entities', 'labels'])
 
@@ -38,6 +39,7 @@ def aggregate(train_df, max_click_history):
 
 
 def transform(df, uid2words, uid2entities):
+    df = df[df['user_id'].isin(uid2words)]
     df['clicked_words'] = df['user_id'].map(lambda x: uid2words[x])
     df['clicked_entities'] = df['user_id'].map(lambda x: uid2entities[x])
     data = Data(size=df.shape[0],
