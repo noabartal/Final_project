@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, f1_score
 DATASET = 'books'
 
 class DKN(object):
@@ -26,9 +26,9 @@ class DKN(object):
     def _build_model(self, args):
         with tf.name_scope('embedding'):
             word_embs = np.load('../data/books/word_embeddings_' + str(args.word_dim) + '.npy')
+            # word_embs = np.load('../data/news/word_embeddings_' + str(args.word_dim) + '.npy')
             entity_embs = np.load('../data/books/kg/entity_embeddings_' + args.KGE + '_' + str(args.entity_dim) + '.npy')
-            # entity_embs = np.load('../KGCN/src/kgcn_entity_embeddings_' + str(args.entity_dim) + '.npy')
-
+            
             print("entity embs shape: ", entity_embs.shape)
 
             self.word_embeddings = tf.Variable(word_embs, dtype=np.float32, name='word')
@@ -114,6 +114,7 @@ class DKN(object):
             filter_shape = [filter_size, full_dim, 1, args.n_filters]
             w = tf.get_variable(name='w_' + str(filter_size), shape=filter_shape, dtype=tf.float32)
             b = tf.get_variable(name='b_' + str(filter_size), shape=[args.n_filters], dtype=tf.float32)
+
             if w not in self.params:
                 self.params.append(w)
 
@@ -156,4 +157,7 @@ class DKN(object):
     def eval(self, sess, feed_dict):
         labels, scores = sess.run([self.labels, self.scores], feed_dict)
         auc = roc_auc_score(y_true=labels, y_score=scores)
-        return auc
+        scores[scores >= 0.5] = 1
+        scores[scores < 0.5] = 0
+        f1 = f1_score(y_true=labels, y_pred=scores)
+        return auc, f1
