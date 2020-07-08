@@ -16,8 +16,8 @@ int bern = 0;
 int transDThreads = 8;
 int transDTrainTimes = 1000;
 int nbatches = 100;
-int dimension = 50;
-int dimensionR = 50;
+int dimension = 100;
+int dimensionR = 100;
 float transDAlpha = 0.001;
 float margin = 1;
 

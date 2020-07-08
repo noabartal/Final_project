@@ -157,7 +157,7 @@ class DKN(object):
     def eval(self, sess, feed_dict):
         labels, scores = sess.run([self.labels, self.scores], feed_dict)
         auc = roc_auc_score(y_true=labels, y_score=scores)
-        scores[scores >= 0.5] = 1
-        scores[scores < 0.5] = 0
+        scores[scores > 0.5] = 1
+        scores[scores <= 0.5] = 0
         f1 = f1_score(y_true=labels, y_pred=scores)
         return auc, f1

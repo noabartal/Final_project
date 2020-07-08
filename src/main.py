@@ -7,7 +7,7 @@ import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--train_file', type=str, default='../data/books/train.txt', help='path to the training file')
-parser.add_argument('--test_file', type=str, default='../data/books/small_test.txt', help='path to the test file')
+parser.add_argument('--test_file', type=str, default='../data/books/test.txt', help='path to the test file')
 # parser.add_argument('--train_file', type=str, default='../data/news/train.txt', help='path to the training file')
 # parser.add_argument('--test_file', type=str, default='../data/news/test.txt', help='path to the test file')
 parser.add_argument('--transform', type=bool, default=True, help='whether to transform entity embeddings')
@@ -16,13 +16,13 @@ parser.add_argument('--max_click_history', type=int, default=30, help='number of
 parser.add_argument('--n_filters', type=int, default=128, help='number of filters for each size in KCNN')
 parser.add_argument('--filter_sizes', type=int, default=[2, 3], nargs='+',
                     help='list of filter sizes, e.g., --filter_sizes 2 3')
-parser.add_argument('--l2_weight', type=float, default=0.00001, help='weight of l2 regularization')
+parser.add_argument('--l2_weight', type=float, default=0.001, help='weight of l2 regularization')
 parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
 parser.add_argument('--batch_size', type=int, default=128, help='number of samples in one batch')
 parser.add_argument('--n_epochs', type=int, default=15, help='number of training epochs')
-parser.add_argument('--KGE', type=str, default='kgcn',
+parser.add_argument('--KGE', type=str, default='transD',
                     help='knowledge graph embedding method, please ensure that the specified input file exists')
-parser.add_argument('--entity_dim', type=int, default=64,
+parser.add_argument('--entity_dim', type=int, default=50,
                     help='dimension of entity embeddings, please ensure that the specified input file exists')
 
 parser.add_argument('--word_dim', type=int, default=100,
