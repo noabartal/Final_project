@@ -3,7 +3,7 @@ import numpy as np
 
 KGE_METHOD = 'kgcn'
 ENTITY_EMBEDDING_DIM = 64
-DATASET = 'books'
+DATASET = 'news'
 
 
 def read_map(file):
@@ -54,9 +54,11 @@ if __name__ == '__main__':
     full_entity2index = read_map(path+'entity2id.txt')
     entity2neighbor = get_neighbors_for_entity(path+'triple2id.txt')
 
-    # full_embeddings = np.loadtxt(KGE_METHOD + '_entity2vec_' + str(ENTITY_EMBEDDING_DIM) + '.vec')
-    full_embeddings = entity_embs = np.load('../../../KGCN/src/kgcn_entity_embeddings_' + str(ENTITY_EMBEDDING_DIM)
-                                            + '_' + DATASET + '.npy')
+    if KGE_METHOD == 'kgcn':
+        full_embeddings = entity_embs = np.load('../../../KGCN/src/kgcn_entity_embeddings_' + str(ENTITY_EMBEDDING_DIM)
+                                                + '_' + DATASET + '.npy')
+    else:
+        full_embeddings = np.loadtxt(KGE_METHOD + '_entity2vec_' + str(ENTITY_EMBEDDING_DIM) + '.vec')
     entity_embeddings = np.zeros([len(entity2index) + 1, ENTITY_EMBEDDING_DIM])
     context_embeddings = np.zeros([len(entity2index) + 1, ENTITY_EMBEDDING_DIM])
 
