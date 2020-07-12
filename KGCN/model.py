@@ -73,8 +73,8 @@ class KGCN(object):
         entities = [seeds]
         relations = []
         for i in range(self.n_iter):
-            neighbor_entities = tf.reshape(tf.gather(self.adj_entity, entities[i]), [self.batch_size, -1])
-            neighbor_relations = tf.reshape(tf.gather(self.adj_relation, entities[i]), [self.batch_size, -1])
+            neighbor_entities = tf.reshape(tf.gather(self.adj_entity, entities[i]), [-1, -1])
+            neighbor_relations = tf.reshape(tf.gather(self.adj_relation, entities[i]), [-1, -1])
             entities.append(neighbor_entities)
             relations.append(neighbor_relations)
         return entities, relations
@@ -86,16 +86,16 @@ class KGCN(object):
 
         for i in range(self.n_iter):
             if i == self.n_iter - 1:
-                aggregator = self.aggregator_class(self.batch_size, self.dim, act=tf.nn.tanh,
+                aggregator = self.aggregator_class(-1, self.dim, act=tf.nn.tanh,
                                                    load_pretrained=load_pretrained_weights, iter=i)
             else:
-                aggregator = self.aggregator_class(self.batch_size, self.dim,
+                aggregator = self.aggregator_class(-1, self.dim,
                                                    load_pretrained=load_pretrained_weights, iter=i)
             aggregators.append(aggregator)
 
             entity_vectors_next_iter = []
             for hop in range(self.n_iter - i):
-                shape = [self.batch_size, -1, self.n_neighbor, self.dim]
+                shape = [-1, -1, self.n_neighbor, self.dim]
                 vector = aggregator(self_vectors=entity_vectors[hop],
                                     neighbor_vectors=tf.reshape(entity_vectors[hop + 1], shape),
                                     neighbor_relations=tf.reshape(relation_vectors[hop], shape),
@@ -107,7 +107,7 @@ class KGCN(object):
             # print("entity vectors: ", len(entity_vectors))
         # at the final iteration only one "hop" is left, therefore only one item is in the list
         # print("entity vectors[0]: ", entity_vectors[0].shape)
-        res = tf.reshape(entity_vectors[0], [self.batch_size, self.dim])
+        res = tf.reshape(entity_vectors[0], [-1, self.dim])
         # print("res shape: ", res.shape)
         return res, aggregators
 
