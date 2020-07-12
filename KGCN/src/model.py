@@ -1,6 +1,9 @@
 import tensorflow as tf
-from aggregators import SumAggregator, ConcatAggregator, NeighborAggregator
+import sys
+sys.path.append('/../../')
+from KGCN.src.aggregators import SumAggregator, ConcatAggregator, NeighborAggregator
 from sklearn.metrics import f1_score, roc_auc_score
+import numpy as np
 
 
 class KGCN(object):
@@ -56,11 +59,13 @@ class KGCN(object):
         entities, relations = self.get_neighbors(self.item_indices)
 
         # [batch_size, dim]
-        # TODO: item_embeddings is what we want to get
         self.item_embeddings, self.aggregators = self.aggregate(entities, relations)
 
         # [batch_size]
         self.scores = tf.reduce_sum(self.user_embeddings * self.item_embeddings, axis=1)
+        print("user_embeddings shape: ", self.user_embeddings.shape)
+        print("item_embeddings shape: ", self.item_embeddings.shape)
+        print("scores shape: ", self.scores.shape)
         self.scores_normalized = tf.sigmoid(self.scores)
 
     def get_neighbors(self, seeds):
@@ -74,16 +79,18 @@ class KGCN(object):
             relations.append(neighbor_relations)
         return entities, relations
 
-    def aggregate(self, entities, relations):
+    def aggregate(self, entities, relations, load_pretrained_weights=False):
         aggregators = []  # store all aggregators
         entity_vectors = [tf.nn.embedding_lookup(self.entity_emb_matrix, i) for i in entities]
         relation_vectors = [tf.nn.embedding_lookup(self.relation_emb_matrix, i) for i in relations]
 
         for i in range(self.n_iter):
             if i == self.n_iter - 1:
-                aggregator = self.aggregator_class(self.batch_size, self.dim, act=tf.nn.tanh)
+                aggregator = self.aggregator_class(self.batch_size, self.dim, act=tf.nn.tanh,
+                                                   load_pretrained=load_pretrained_weights, iter=i)
             else:
-                aggregator = self.aggregator_class(self.batch_size, self.dim)
+                aggregator = self.aggregator_class(self.batch_size, self.dim,
+                                                   load_pretrained=load_pretrained_weights, iter=i)
             aggregators.append(aggregator)
 
             entity_vectors_next_iter = []
@@ -93,11 +100,15 @@ class KGCN(object):
                                     neighbor_vectors=tf.reshape(entity_vectors[hop + 1], shape),
                                     neighbor_relations=tf.reshape(relation_vectors[hop], shape),
                                     user_embeddings=self.user_embeddings)
+                print("vector: ", vector.shape)
                 entity_vectors_next_iter.append(vector)
+            # previous vectors are used to compute new ones, iteratively
             entity_vectors = entity_vectors_next_iter
-
+            print("entity vectors: ", len(entity_vectors))
+        # at the final iteration only one "hop" is left, therefore only one item is in the list
+        print("entity vectors[0]: ", entity_vectors[0].shape)
         res = tf.reshape(entity_vectors[0], [self.batch_size, self.dim])
-
+        print("res shape: ", res.shape)
         return res, aggregators
 
     def _build_train(self):
@@ -127,3 +138,21 @@ class KGCN(object):
 
     def get_scores(self, sess, feed_dict):
         return sess.run([self.item_indices, self.scores_normalized], feed_dict)
+
+    def load_pretrained_weights(self):
+        user_emb = np.load(
+            '../KGCN/src/kgcn_user_embeddings_64_books_2' + '.npy')
+        rel_emb = np.load(
+            '../KGCN/src/kgcn_relation_embeddings_64_books_2' + '.npy')
+        ent_emb = np.load(
+            '../KGCN/src/kgcn_entity_embeddings_64_books_2' + '.npy')
+        self.user_emb_matrix = tf.Variable(user_emb, dtype=np.float32, name='user_emb_matrix')
+        self.relation_emb_matrix = tf.Variable(user_emb, dtype=np.float32, name='relation_emb_matrix')
+        self.entity_emb_matrix = tf.Variable(ent_emb, dtype=np.float32, name='entity_emb_matrix')
+
+    def get_entity_user_vector(self, user_idx, entity_idx):
+        self.user_embeddings = tf.nn.embedding_lookup(self.user_emb_matrix, self.user_idx)
+        entities, relations = self.get_neighbors(entity_idx)
+        item_embeddings, _ = self.aggregate(entities, relations, load_pretrained_weights=True)
+        return item_embeddings
+

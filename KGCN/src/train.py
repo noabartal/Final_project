@@ -8,7 +8,6 @@ def train(args, data, show_loss, show_topk):
     train_data, eval_data, test_data = data[4], data[5], data[6]
     adj_entity, adj_relation = data[7], data[8]
 
-    # TODO: save this model
     model = KGCN(args, n_user, n_entity, n_relation, adj_entity, adj_relation)
 
     # top-K evaluation settings
@@ -52,9 +51,17 @@ def train(args, data, show_loss, show_topk):
 
             # print(model.entity_emb_matrix.eval()[0, :])
 
-        res = model.entity_emb_matrix.eval()
-        print(res.shape)
-        np.save("kgcn_entity_embeddings_"+str(args.dim), res)
+        np.save("kgcn_entity_embeddings_"+str(args.dim)+"_"+args.dataset+"_2",
+                model.entity_emb_matrix.eval())
+        np.save("kgcn_relation_embeddings_" + str(args.dim) + "_" + args.dataset + "_2",
+                model.relation_emb_matrix.eval())
+        np.save("kgcn_user_embeddings_" + str(args.dim) + "_" + args.dataset + "_2",
+                model.user_emb_matrix.eval())
+        for i, agg in enumerate(model.aggregators):
+            np.save("kgcn_agg_weights_" + str(i) + "_" + str(args.dim) + "_" + args.dataset + "_2",
+                    agg.weights.eval())
+            np.save("kgcn_gg_bias_"  + str(i) + "_" + str(args.dim) + "_" + args.dataset + "_2",
+                    agg.bias.eval())
 
 
 

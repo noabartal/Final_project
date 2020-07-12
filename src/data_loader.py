@@ -1,11 +1,12 @@
 import pandas as pd
 import numpy as np
 from collections import namedtuple
+# from main import DATASET
 
 # pd.set_option('display.expand_frame_repr', False)
-DATASET = 'books'
 
-Data = namedtuple('Data', ['size', 'clicked_words', 'clicked_entities', 'news_words', 'news_entities', 'labels'])
+Data = namedtuple('Data', ['size', 'clicked_words', 'clicked_entities', 'news_words',
+                           'news_entities', 'labels', 'users'])
 
 
 def load_data(args):
@@ -47,5 +48,6 @@ def transform(df, uid2words, uid2entities):
                 clicked_entities=np.array(df['clicked_entities'].tolist()),
                 news_words=np.array(df['news_words'].tolist()),
                 news_entities=np.array(df['news_entities'].tolist()),
-                labels=np.array(df['label']))
+                labels=np.array(df['label']),
+                users=np.array(df['user_id'])) # TODO: are these ids correct?
     return data

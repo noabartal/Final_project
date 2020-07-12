@@ -5,7 +5,6 @@ import os
 def load_data(args):
     n_user, n_item, train_data, eval_data, test_data = load_rating(args)
     n_entity, n_relation, adj_entity, adj_relation = load_kg(args)
-    n_entity = 36448 # TODO: temp - hardcoded according to kg_kgcn entities
 
     print('data loaded.')
 

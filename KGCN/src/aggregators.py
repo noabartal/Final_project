@@ -1,5 +1,6 @@
 import tensorflow as tf
 from abc import abstractmethod
+import numpy as np
 
 LAYER_IDS = {}
 
@@ -60,20 +61,31 @@ class Aggregator(object):
 
 
 class SumAggregator(Aggregator):
-    def __init__(self, batch_size, dim, dropout=0., act=tf.nn.relu, name=None):
+    def __init__(self, batch_size, dim, dropout=0., act=tf.nn.relu, name=None,
+                 load_pretrained=False, iter=None):
         super(SumAggregator, self).__init__(batch_size, dim, dropout, act, name)
 
         with tf.variable_scope(self.name):
-            self.weights = tf.get_variable(
-                shape=[self.dim, self.dim], initializer=tf.contrib.layers.xavier_initializer(), name='weights')
-            self.bias = tf.get_variable(shape=[self.dim], initializer=tf.zeros_initializer(), name='bias')
+            if load_pretrained:
+                weights = np.load(
+                    '../KGCN/src/kgcn_agg_weights_'+str(iter)+'_64_books_2' + '.npy')
+                bias = np.load(
+                    '../KGCN/src/kgcn_gg_bias_'+str(iter)+'_64_books_2' + '.npy')
+                self.weights = tf.Variable(weights, dtype=np.float32, name='weights')
+                self.bias = tf.Variable(bias, dtype=np.float32, name='bias')
+            else:
+                self.weights = tf.get_variable(
+                    shape=[self.dim, self.dim], initializer=tf.contrib.layers.xavier_initializer(), name='weights')
+                self.bias = tf.get_variable(shape=[self.dim], initializer=tf.zeros_initializer(), name='bias')
 
     def _call(self, self_vectors, neighbor_vectors, neighbor_relations, user_embeddings):
         # [batch_size, -1, dim]
+        # print("=================")
         neighbors_agg = self._mix_neighbor_vectors(neighbor_vectors, neighbor_relations, user_embeddings)
-
+        # print("neighbors_agg: ", neighbors_agg.shape)
         # [-1, dim]
         output = tf.reshape(self_vectors + neighbors_agg, [-1, self.dim])
+        # print("output: ", output.shape)
         output = tf.nn.dropout(output, keep_prob=1-self.dropout)
         output = tf.matmul(output, self.weights) + self.bias
 

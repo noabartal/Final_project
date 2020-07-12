@@ -8,12 +8,13 @@ def get_feed_dict(model, data, start, end):
                  model.clicked_entities: data.clicked_entities[start:end],
                  model.news_words: data.news_words[start:end],
                  model.news_entities: data.news_entities[start:end],
-                 model.labels: data.labels[start:end]}
+                 model.labels: data.labels[start:end],
+                 model.users: data.users[start:end]}
     return feed_dict
 
 
-def train(args, train_data, test_data):
-    model = DKN(args)
+def train(args, train_data, test_data, kgcn):
+    model = DKN(args, kgcn)
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
