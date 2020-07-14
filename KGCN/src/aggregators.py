@@ -68,9 +68,9 @@ class SumAggregator(Aggregator):
         with tf.variable_scope(self.name):
             if load_pretrained:
                 weights = np.load(
-                    '../KGCN/src/kgcn_agg_weights_'+str(iter)+'_64_books_2' + '.npy')
+                    '../KGCN/kgcn_agg_weights_'+str(iter)+'_64_books_2' + '.npy')
                 bias = np.load(
-                    '../KGCN/src/kgcn_gg_bias_'+str(iter)+'_64_books_2' + '.npy')
+                    '../KGCN/kgcn_gg_bias_'+str(iter)+'_64_books_2' + '.npy')
                 self.weights = tf.Variable(weights, dtype=np.float32, name='weights')
                 self.bias = tf.Variable(bias, dtype=np.float32, name='bias')
             else:

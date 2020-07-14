@@ -151,7 +151,7 @@ class KGCN(object):
         self.entity_emb_matrix = tf.Variable(ent_emb, dtype=np.float32, name='entity_emb_matrix')
 
     def get_entity_user_vector(self, user_idx, entity_idx):
-        self.user_embeddings = tf.nn.embedding_lookup(self.user_emb_matrix, self.user_idx)
+        self.user_embeddings = tf.nn.embedding_lookup(self.user_emb_matrix, user_idx)
         entities, relations = self.get_neighbors(entity_idx)
         item_embeddings, _ = self.aggregate(entities, relations, load_pretrained_weights=True)
         return item_embeddings

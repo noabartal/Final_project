@@ -3,7 +3,7 @@ import tensorflow as tf
 from sklearn.metrics import roc_auc_score, f1_score
 CALC_EMB_PER_USER = True
 # from main import DATASET
-DATASET = 'books'
+# DATASET = 'books'
 
 class DKN(object):
     def __init__(self, args, kgcn):
@@ -29,9 +29,9 @@ class DKN(object):
 
     def _build_model(self, args, kgcn):
         with tf.name_scope('embedding'):
-            word_embs = np.load('../data/' + DATASET + '/word_embeddings_' + str(args.word_dim) + '.npy')
+            word_embs = np.load('../data/' + args.dataset + '/word_embeddings_' + str(args.word_dim) + '.npy')
             if not CALC_EMB_PER_USER:
-               entity_embs = np.load('../data/' + DATASET + '/kg/entity_embeddings_' + args.KGE + '_' + str(args.entity_dim) + '.npy')
+               entity_embs = np.load('../data/' + args.dataset + '/kg/entity_embeddings_' + args.KGE + '_' + str(args.entity_dim) + '.npy')
                self.entity_embeddings = tf.Variable(entity_embs, dtype=np.float32, name='entity')
                self.params.append(self.entity_embeddings)
 
@@ -42,7 +42,7 @@ class DKN(object):
 
             if args.use_context:
                 context_embs = np.load(
-                    '../data/'+DATASET+'/kg/context_embeddings_' + args.KGE + '_' + str(args.entity_dim) + '.npy')
+                    '../data/'+args.dataset+'/kg/context_embeddings_' + args.KGE + '_' + str(args.entity_dim) + '.npy')
                 self.context_embeddings = tf.Variable(context_embs, dtype=np.float32, name='context')
                 self.params.append(self.context_embeddings)
 

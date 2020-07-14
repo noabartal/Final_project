@@ -141,11 +141,11 @@ class KGCN(object):
 
     def load_pretrained_weights(self):
         user_emb = np.load(
-            '../KGCN/src/kgcn_user_embeddings_64_books_2' + '.npy')
+            '../KGCN/kgcn_user_embeddings_64_books_2' + '.npy')
         rel_emb = np.load(
-            '../KGCN/src/kgcn_relation_embeddings_64_books_2' + '.npy')
+            '../KGCN/kgcn_relation_embeddings_64_books_2' + '.npy')
         ent_emb = np.load(
-            '../KGCN/src/kgcn_entity_embeddings_64_books_2' + '.npy')
+            '../KGCN/kgcn_entity_embeddings_64_books_2' + '.npy')
         self.user_emb_matrix = tf.Variable(user_emb, dtype=np.float32, name='user_emb_matrix')
         self.relation_emb_matrix = tf.Variable(user_emb, dtype=np.float32, name='relation_emb_matrix')
         self.entity_emb_matrix = tf.Variable(ent_emb, dtype=np.float32, name='entity_emb_matrix')

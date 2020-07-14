@@ -11,13 +11,14 @@ sys.path.append('/../')
 import KGCN.data_loader as kgcn_data_loader
 from KGCN.model import KGCN
 import os
-DATASET = 'books'
-
+# DATASET = 'books'
+DATASET = 'news'
 parser = argparse.ArgumentParser()
-parser.add_argument('--train_file', type=str, default='../data/books/train.txt', help='path to the training file')
-parser.add_argument('--test_file', type=str, default='../data/books/small_test.txt', help='path to the test file')
+parser.add_argument('--train_file', type=str, default='../data/' + DATASET +'/train.txt', help='path to the training file')
+parser.add_argument('--test_file', type=str, default='../data/' + DATASET +'/test.txt', help='path to the test file')
 parser.add_argument('--transform', type=bool, default=True, help='whether to transform entity embeddings')
 # parser.add_argument('--use_context', type=bool, default=True, help='whether to use context embeddings')
+parser.add_argument('--dataset', type=str, default=DATASET, help='dataset folder name')
 parser.add_argument('--use_context', type=bool, default=False, help='whether to use context embeddings')
 parser.add_argument('--max_click_history', type=int, default=30, help='number of sampled click history for each user')
 parser.add_argument('--n_filters', type=int, default=32, help='number of filters for each size in KCNN')
@@ -31,7 +32,7 @@ parser.add_argument('--KGE', type=str, default='kgcn',
                     help='knowledge graph embedding method, please ensure that the specified input file exists')
 parser.add_argument('--entity_dim', type=int, default=64,
                     help='dimension of entity embeddings, please ensure that the specified input file exists')
-parser.add_argument('--word_dim', type=int, default=100,
+parser.add_argument('--word_dim', type=int, default=50,
                     help='dimension of word embeddings, please ensure that the specified input file exists')
 parser.add_argument('--max_title_length', type=int, default=10,
                     help='maximum length of news titles, should be in accordance with the input datasets')
