@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from sklearn.metrics import roc_auc_score, f1_score
-CALC_EMB_PER_USER = True
+CALC_EMB_PER_USER = False
 # from main import DATASET
 # DATASET = 'books'
 
@@ -105,22 +105,37 @@ class DKN(object):
         # print("self.entity_embeddings: ", self.entity_embeddings.shape)
         if not CALC_EMB_PER_USER:
             embedded_entities = tf.nn.embedding_lookup(self.entity_embeddings, entities)
+            print("embedded_entities: ", embedded_entities.shape)
             # embedded_entities = tf.Print(embedded_entities, [embedded_entities[1]], message = "embedded_entities val")
         else:
+            entities = entities[:, 0]
+            print("entities: ", entities.shape)
             print("self.users: ", self.users.shape)
-            if clicked:
-                repeats = np.full(128, args.max_click_history)
+            if clicked: # reshape the users to (batch_size*history_length, title_length)
+                repeats = np.full(args.batch_size, args.max_click_history)
                 print(repeats)
                 users = tf.repeat(self.users, repeats=repeats, axis=0)
                 print("users: ", users.shape)
+                batches_users = tf.split(users, args.max_click_history, axis=0)
+                batches_entities = tf.split(entities, args.max_click_history, axis=0)
+                print("batches_users: ", batches_users[0].shape)
+                print("batches_entities: ", batches_entities[0].shape)
+                print("len batches_users: ", len(batches_users))
+                print("len batches_entities: ", len(batches_entities))
+                embeddings_list = []
+                for users, _entities in zip(batches_users, batches_entities):
+                    embeddings_list.append(self.kgcn.get_entity_user_vector(users, _entities))
+                    embedded_entities = tf.concat(embeddings_list, axis=0)
             else:
-                users = self.users
-            embedded_entities = self.kgcn.get_entity_user_vector(users, entities)
-            print("embedded_entities 1: ", embedded_entities.shape)
+                embedded_entities = self.kgcn.get_entity_user_vector(self.users, entities)
+                # TODO: what happens if there are multiple entities per sample?
+                # TODO: etract non-zero values from the entities vector, send them separately
+                # TODO: to KGCN, and concat the result back to a 3D tensor
+            print("embedded_entities: ", embedded_entities.shape)
             # embedded_entities = tf.reshape(embedded_entities, [None, args.entity_dim])
             # print("embedded_entities: ", embedded_entities.shape)
             embedded_entities = tf.expand_dims(embedded_entities, 1)
-            paddings = [[0, 0], [0, 9], [0, 0]]
+            paddings = [[0, 0], [0, args.max_title_length-1], [0, 0]]
             embedded_entities = tf.pad(embedded_entities, paddings, 'CONSTANT', constant_values=0)
             # embedded_entities = tf.reshape(embedded_entities, [-1, args.max_title_length, args.entity_dim])
         if args.transform:

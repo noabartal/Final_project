@@ -11,8 +11,10 @@ sys.path.append('/../')
 import KGCN.data_loader as kgcn_data_loader
 from KGCN.model import KGCN
 import os
-# DATASET = 'books'
-DATASET = 'news'
+DATASET = 'books'
+# DATASET = 'news'
+
+# books parameters
 parser = argparse.ArgumentParser()
 parser.add_argument('--train_file', type=str, default='../data/' + DATASET +'/train.txt', help='path to the training file')
 parser.add_argument('--test_file', type=str, default='../data/' + DATASET +'/test.txt', help='path to the test file')
@@ -39,6 +41,7 @@ parser.add_argument('--max_title_length', type=int, default=10,
 args = parser.parse_args()
 
 
+# news parameters
 # parser.add_argument('--train_file', type=str, default='../data/news/train.txt', help='path to the training file')
 # parser.add_argument('--test_file', type=str, default='../data/news/test.txt', help='path to the test file')
 # parser.add_argument('--transform', type=bool, default=True, help='whether to transform entity embeddings')
@@ -63,7 +66,7 @@ args = parser.parse_args()
 
 # trained KGCN arguments (used only for calculating user-specific entity embeddings)
 kgcn_parser = argparse.ArgumentParser()
-kgcn_parser.add_argument('--dataset', type=str, default='books', help='which dataset to use')
+kgcn_parser.add_argument('--dataset', type=str, default=DATASET, help='which dataset to use')
 kgcn_parser.add_argument('--aggregator', type=str, default='sum', help='which aggregator to use')
 kgcn_parser.add_argument('--n_epochs', type=int, default=1, help='the number of epochs')
 kgcn_parser.add_argument('--neighbor_sample_size', type=int, default=8, help='the number of neighbors to be sampled')
