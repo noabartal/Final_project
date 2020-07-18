@@ -22,19 +22,20 @@ def load_rating(args):
         test_data = np.load(test_file + '.npy')
     else:
         train_data = np.loadtxt(train_file + '.txt', dtype=np.int64)
-
-    if args.dataset == 'news':
-        split_test = False
         test_data = np.loadtxt(test_file + '.txt', dtype=np.int64)
         np.save(train_file + '.npy', train_data)
         np.save(test_file + '.npy', test_data)
-    else:
-        split_test = True
-    train_data, eval_data, test = dataset_split(train_data, args, split_test)
-    if args.dataset != 'news':
-        test_data = test
-    n_user = len(set(train_data[:, 0]))
-    n_item = len(set(train_data[:, 1]))
+        # else:
+        #     split_test = True
+    train_data, eval_data, test = dataset_split(train_data, args, split_test=False)
+    users_train = set(train_data[:, 0])
+    items_train = set(train_data[:, 1])
+    users_eval = set(eval_data[:, 0])
+    items_eval = set(eval_data[:, 1])
+    users_test = set(test_data[:, 0])
+    items_test = set(test_data[:, 1])
+    n_user = len((users_train|users_eval)|users_test)
+    n_item = len((items_train|items_eval)|items_test)
     print("n_users: ", n_user)
     print("n_items: ", n_item)
     return n_user, n_item, train_data, eval_data, test_data

@@ -4,6 +4,9 @@ sys.path.append('/../../')
 from KGCN.src.aggregators import SumAggregator, ConcatAggregator, NeighborAggregator
 from sklearn.metrics import f1_score, roc_auc_score
 import numpy as np
+#
+# import os
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
 class KGCN(object):
@@ -44,7 +47,7 @@ class KGCN(object):
 
     def _build_model(self, n_user, n_entity, n_relation):
         self.user_emb_matrix = tf.get_variable(
-            shape=[n_user, self.dim], initializer=KGCN.get_initializer(), name='user_emb_matrix')
+            shape=[n_user+1, self.dim], initializer=KGCN.get_initializer(), name='user_emb_matrix')
         self.entity_emb_matrix = tf.get_variable(
             shape=[n_entity, self.dim], initializer=KGCN.get_initializer(), name='entity_emb_matrix')
         self.relation_emb_matrix = tf.get_variable(
@@ -77,6 +80,7 @@ class KGCN(object):
             neighbor_relations = tf.reshape(tf.gather(self.adj_relation, entities[i]), [self.batch_size, -1])
             entities.append(neighbor_entities)
             relations.append(neighbor_relations)
+        # print("get neighbors entities: ", entities[0].shape, " len: ", len(entities))
         return entities, relations
 
     def aggregate(self, entities, relations, load_pretrained_weights=False):
@@ -147,7 +151,7 @@ class KGCN(object):
         ent_emb = np.load(
             '../KGCN/kgcn_entity_embeddings_64_books_2' + '.npy')
         self.user_emb_matrix = tf.Variable(user_emb, dtype=np.float32, name='user_emb_matrix')
-        self.relation_emb_matrix = tf.Variable(user_emb, dtype=np.float32, name='relation_emb_matrix')
+        self.relation_emb_matrix = tf.Variable(rel_emb, dtype=np.float32, name='relation_emb_matrix')
         self.entity_emb_matrix = tf.Variable(ent_emb, dtype=np.float32, name='entity_emb_matrix')
 
     def get_entity_user_vector(self, user_idx, entity_idx):
