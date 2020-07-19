@@ -20,13 +20,14 @@ def split_by_entities(file, output_file, user_dict):
         unique_entities = list(dict.fromkeys(entities_id))
         for ent in unique_entities:
             all_entities[ent] = 1
-            line = '\t'.join([str(user_idx), ent, is_click])
+            # TODO: fix for news data
+            line = '\t'.join([user, ent, is_click])
             if ent != '0' and ent != ',' and line not in seen_lines:
                 writer.write(line)
                 seen_lines[line] = 1
     reader.close()
     writer.close()
-    print("# entities in train: ", len(all_entities))
+    print("# entities: ", len(all_entities))
 
 # convert entities in the kg to the indices as they appear in train_kgcn and test_kgcn
 def kg_to_idx(max_idx, dataset):

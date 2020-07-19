@@ -42,6 +42,7 @@ class Aggregator(object):
         avg = False
         if not avg:
             # [batch_size, 1, 1, dim]
+            print("mix neighb: ", self.batch_size, self.dim)
             user_embeddings = tf.reshape(user_embeddings, [self.batch_size, 1, 1, self.dim])
 
             # [batch_size, -1, n_neighbor]
@@ -68,9 +69,9 @@ class SumAggregator(Aggregator):
         with tf.variable_scope(self.name):
             if load_pretrained:
                 weights = np.load(
-                    '../KGCN/src/kgcn_agg_weights_'+str(iter)+'_64_books_2' + '.npy')
+                    '../KGCN/kgcn_agg_weights_'+str(iter)+'_64_books_2' + '.npy')
                 bias = np.load(
-                    '../KGCN/src/kgcn_gg_bias_'+str(iter)+'_64_books_2' + '.npy')
+                    '../KGCN/kgcn_gg_bias_'+str(iter)+'_64_books_2' + '.npy')
                 self.weights = tf.Variable(weights, dtype=np.float32, name='weights')
                 self.bias = tf.Variable(bias, dtype=np.float32, name='bias')
             else:

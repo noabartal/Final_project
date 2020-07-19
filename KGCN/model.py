@@ -1,12 +1,9 @@
 import tensorflow as tf
 import sys
 sys.path.append('/../../')
-from KGCN.src.aggregators import SumAggregator, ConcatAggregator, NeighborAggregator
+from KGCN.aggregators import SumAggregator, ConcatAggregator, NeighborAggregator
 from sklearn.metrics import f1_score, roc_auc_score
 import numpy as np
-#
-# import os
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
 class KGCN(object):
