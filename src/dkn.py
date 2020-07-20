@@ -1,9 +1,11 @@
 import numpy as np
 import tensorflow as tf
 from sklearn.metrics import roc_auc_score, f1_score
-CALC_EMB_PER_USER = False
+CALC_EMB_PER_USER = True
+
 # from main import DATASET
 # DATASET = 'books'
+
 
 class DKN(object):
     def __init__(self, args, kgcn):
@@ -64,21 +66,21 @@ class DKN(object):
         print("self.clicked_words:", self.clicked_words)
         clicked_words = tf.reshape(self.clicked_words, shape=[-1, args.max_title_length])
         clicked_entities = tf.reshape(self.clicked_entities, shape=[-1, args.max_title_length])
-        print("reshaped clicked_words:", clicked_words)
+        clicked_words = tf.Print(clicked_words, [clicked_words], "reshaped clicked_words:")
         with tf.variable_scope('kcnn', reuse=tf.AUTO_REUSE):  # reuse the variables of KCNN
             # (batch_size * max_click_history, title_embedding_length)
             # title_embedding_length = n_filters_for_each_size * n_filter_sizes
             clicked_embeddings = self._kcnn(clicked_words, clicked_entities, args, clicked=True)
-            print("clicked_embeddings: ", clicked_embeddings.shape)
+            clicked_embeddings = tf.Print(clicked_embeddings, [tf.shape(clicked_embeddings)], "clicked_embeddings: ")
 
             # (batch_size, title_embedding_length)
             news_embeddings = self._kcnn(self.news_words, self.news_entities, args)
-        print("news_embeddings: ", news_embeddings.shape)
+        news_embeddings = tf.Print(news_embeddings, [tf.shape(news_embeddings)],"news_embeddings: ")
 
         # (batch_size, max_click_history, title_embedding_length)
         clicked_embeddings = tf.reshape(
             clicked_embeddings, shape=[-1, args.max_click_history, args.n_filters * len(args.filter_sizes)])
-        print("clicked_embeddings after reshape: ", clicked_embeddings.shape)
+        clicked_embeddings = tf.Print(clicked_embeddings, [tf.shape(clicked_embeddings)],"clicked_embeddings after reshape: ")
 
         # (batch_size, 1, title_embedding_length)
         news_embeddings_expanded = tf.expand_dims(news_embeddings, 1)
@@ -118,10 +120,14 @@ class DKN(object):
                 print("users: ", users.shape)
                 batches_users = tf.split(users, args.max_click_history, axis=0)
                 batches_entities = tf.split(entities, args.max_click_history, axis=0)
-                print("batches_users: ", batches_users[0].shape)
-                print("batches_entities: ", batches_entities[0].shape)
-                print("len batches_users: ", len(batches_users))
-                print("len batches_entities: ", len(batches_entities))
+
+                #
+                # batches_users = tf.Print(batches_users, [ tf.shape(batches_users[0])],"batches_users: ")
+                # batches_entities = tf.Print(batches_entities, [ tf.shape(batches_entities[0])],"batches_entities: ")
+                # batches_users = tf.Print(batches_users, [tf.shape(batches_users)], "len batches_users:")
+                # batches_entities = tf.Print(batches_entities, [tf.shape(batches_entities)], "len batches_users:")
+
+                # print("len batches_entities: ", len(batches_entities))
                 embeddings_list = []
                 for users, _entities in zip(batches_users, batches_entities):
                     embeddings_list.append(self.kgcn.get_entity_user_vector(users, _entities))
@@ -184,12 +190,12 @@ class DKN(object):
         # (batch_size * max_click_history, 1, 1, n_filters_for_each_size * n_filter_sizes) for users
         # (batch_size, 1, 1, n_filters_for_each_size * n_filter_sizes) for news
         output = tf.concat(outputs, axis=-1)
-        print("output: ", output.shape)
+        output = tf.Print(output, [tf.shape(output)], "output reshaped: ")
 
         # (batch_size * max_click_history, n_filters_for_each_size * n_filter_sizes) for users
         # (batch_size, n_filters_for_each_size * n_filter_sizes) for news
         output = tf.reshape(output, [-1, args.n_filters * len(args.filter_sizes)])
-        print("output reshaped: ", output.shape)
+        output = tf.Print(output, [tf.shape(output)], "output reshaped: ")
         return output
 
     def _build_train(self, args):
