@@ -65,22 +65,31 @@ class DKN(object):
         # (batch_size * max_click_history, max_title_length)
         print("self.clicked_words:", self.clicked_words)
         clicked_words = tf.reshape(self.clicked_words, shape=[-1, args.max_title_length])
+        self.clicked_entities = tf.Print(self.clicked_entities, [tf.shape(self.clicked_entities)], "self.clicked_entities:")
+
+        # Create another vector containing zeroes to pad `a` to (2 * 3) elements.
+        zero_padding = tf.zeros([args.batch_size * args.max_title_length * 5] - tf.shape(self.clicked_entities),
+                                dtype=self.clicked_entities.dtype)
+        zero_padding = tf.Print(zero_padding, [tf.shape(zero_padding)], 'zero_padding')
+        # Concatenate `a_as_vector` with the padding.
+        self.clicked_entities = tf.concat([self.clicked_entities, zero_padding], 0)
         clicked_entities = tf.reshape(self.clicked_entities, shape=[-1, args.max_title_length])
-        clicked_words = tf.Print(clicked_words, [clicked_words], "reshaped clicked_words:")
+
+        clicked_entities = tf.Print(clicked_entities, [tf.shape(clicked_entities)], "reshaped clicked_entities:")
         with tf.variable_scope('kcnn', reuse=tf.AUTO_REUSE):  # reuse the variables of KCNN
             # (batch_size * max_click_history, title_embedding_length)
             # title_embedding_length = n_filters_for_each_size * n_filter_sizes
             clicked_embeddings = self._kcnn(clicked_words, clicked_entities, args, clicked=True)
-            clicked_embeddings = tf.Print(clicked_embeddings, [tf.shape(clicked_embeddings)], "clicked_embeddings: ")
+            # clicked_embeddings = tf.Print(clicked_embeddings, [tf.shape(clicked_embeddings)], "clicked_embeddings: ")
 
             # (batch_size, title_embedding_length)
             news_embeddings = self._kcnn(self.news_words, self.news_entities, args)
-        news_embeddings = tf.Print(news_embeddings, [tf.shape(news_embeddings)],"news_embeddings: ")
+        # news_embeddings = tf.Print(news_embeddings, [tf.shape(news_embeddings)],"news_embeddings: ")
 
         # (batch_size, max_click_history, title_embedding_length)
         clicked_embeddings = tf.reshape(
             clicked_embeddings, shape=[-1, args.max_click_history, args.n_filters * len(args.filter_sizes)])
-        clicked_embeddings = tf.Print(clicked_embeddings, [tf.shape(clicked_embeddings)],"clicked_embeddings after reshape: ")
+        # clicked_embeddings = tf.Print(clicked_embeddings, [tf.shape(clicked_embeddings)],"clicked_embeddings after reshape: ")
 
         # (batch_size, 1, title_embedding_length)
         news_embeddings_expanded = tf.expand_dims(news_embeddings, 1)
@@ -107,17 +116,16 @@ class DKN(object):
         # print("self.entity_embeddings: ", self.entity_embeddings.shape)
         if not CALC_EMB_PER_USER:
             embedded_entities = tf.nn.embedding_lookup(self.entity_embeddings, entities)
-            print("embedded_entities: ", embedded_entities.shape)
-            # embedded_entities = tf.Print(embedded_entities, [embedded_entities[1]], message = "embedded_entities val")
         else:
             entities = entities[:, 0]
-            print("entities: ", entities.shape)
-            print("self.users: ", self.users.shape)
-            if clicked: # reshape the users to (batch_size*history_length, title_length)
+            entities = tf.Print(entities, [tf.shape(entities), tf.shape(self.users)], "entities + self.users: ")
+            if clicked:  # reshape the users to (batch_size*history_length, title_length)
                 repeats = np.full(args.batch_size, args.max_click_history)
                 print(repeats)
                 users = tf.repeat(self.users, repeats=repeats, axis=0)
-                print("users: ", users.shape)
+
+                users = tf.Print(users, [tf.shape(users), repeats], "entities + repeats: ")
+
                 batches_users = tf.split(users, args.max_click_history, axis=0)
                 batches_entities = tf.split(entities, args.max_click_history, axis=0)
 
@@ -132,6 +140,7 @@ class DKN(object):
                 for users, _entities in zip(batches_users, batches_entities):
                     embeddings_list.append(self.kgcn.get_entity_user_vector(users, _entities))
                     embedded_entities = tf.concat(embeddings_list, axis=0)
+                    # embedded_entities = tf.Print(embedded_entities, [embedded_entities.shape], "embedded_entities: ")
             else:
                 embedded_entities = self.kgcn.get_entity_user_vector(self.users, entities)
                 # TODO: what happens if there are multiple entities per sample?
@@ -190,18 +199,19 @@ class DKN(object):
         # (batch_size * max_click_history, 1, 1, n_filters_for_each_size * n_filter_sizes) for users
         # (batch_size, 1, 1, n_filters_for_each_size * n_filter_sizes) for news
         output = tf.concat(outputs, axis=-1)
-        output = tf.Print(output, [tf.shape(output)], "output reshaped: ")
+        # output = tf.Print(output, [tf.shape(output)], "output reshaped: ")
 
         # (batch_size * max_click_history, n_filters_for_each_size * n_filter_sizes) for users
         # (batch_size, n_filters_for_each_size * n_filter_sizes) for news
         output = tf.reshape(output, [-1, args.n_filters * len(args.filter_sizes)])
-        output = tf.Print(output, [tf.shape(output)], "output reshaped: ")
+        # output = tf.Print(output, [tf.shape(output)], "output reshaped: ")
         return output
 
     def _build_train(self, args):
         with tf.name_scope('train'):
             self.base_loss = tf.reduce_mean(
                 tf.nn.sigmoid_cross_entropy_with_logits(labels=self.labels, logits=self.scores_unnormalized))
+
             self.l2_loss = tf.Variable(tf.constant(0., dtype=tf.float32), trainable=False)
             for param in self.params:
                 self.l2_loss = tf.add(self.l2_loss, args.l2_weight * tf.nn.l2_loss(param))
@@ -214,6 +224,8 @@ class DKN(object):
         return sess.run([self.optimizer, self.loss], feed_dict)
 
     def eval(self, sess, feed_dict):
+        self.labels = tf.Print(self.labels, [tf.shape(self.labels)], 'labels shape')
+        self.scores = tf.Print(self.scores, [tf.shape(self.scores)], 'scores shape')
         labels, scores = sess.run([self.labels, self.scores], feed_dict)
         auc = roc_auc_score(y_true=labels, y_score=scores)
         scores[scores > 0.5] = 1

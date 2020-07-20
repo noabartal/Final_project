@@ -43,8 +43,9 @@ class Aggregator(object):
         if not avg:
             # [batch_size, 1, 1, dim]
             print("mix neighb: ", self.batch_size, self.dim)
-            user_embeddings = tf.reshape(user_embeddings, [self.batch_size, 1, 1, self.dim])
 
+            user_embeddings = tf.reshape(user_embeddings, [self.batch_size, 1, 1, self.dim])
+            # user_embeddings = tf.Print(user_embeddings, [user_embeddings], 'user_embedding_mix meighbor vector')
             # [batch_size, -1, n_neighbor]
             user_relation_scores = tf.reduce_mean(user_embeddings * neighbor_relations, axis=-1)
             user_relation_scores_normalized = tf.nn.softmax(user_relation_scores, dim=-1)
@@ -83,10 +84,10 @@ class SumAggregator(Aggregator):
         # [batch_size, -1, dim]
         print("=================")
         neighbors_agg = self._mix_neighbor_vectors(neighbor_vectors, neighbor_relations, user_embeddings)
-        print("neighbors_agg: ", neighbors_agg.shape)
+        # neighbors_agg = tf.Print(neighbors_agg.shape, [neighbors_agg.shape], "output reshaped: ", neighbors_agg.shape)
         # [-1, dim]
         output = tf.reshape(self_vectors + neighbors_agg, [-1, self.dim])
-        print("output: ", output.shape)
+        # output = tf.Print(output.shape, [output.shape], "output reshaped: ", output.shape)
         output = tf.nn.dropout(output, keep_prob=1-self.dropout)
         output = tf.matmul(output, self.weights) + self.bias
 
