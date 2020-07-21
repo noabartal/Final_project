@@ -68,14 +68,14 @@ class DKN(object):
         self.clicked_entities = tf.Print(self.clicked_entities, [tf.shape(self.clicked_entities)], "self.clicked_entities:")
 
         # Create another vector containing zeroes to pad `a` to (2 * 3) elements.
-        zero_padding = tf.zeros([args.batch_size * args.max_title_length * 5] - tf.shape(self.clicked_entities),
-                                dtype=self.clicked_entities.dtype)
-        zero_padding = tf.Print(zero_padding, [tf.shape(zero_padding)], 'zero_padding')
+        # zero_padding = tf.zeros([args.max_click_history * (args.batch_size - tf.shape(self.clicked_entities)[0]), args.max_title_length],
+        #                         dtype=self.clicked_entities.dtype)
+        # zero_padding = tf.Print(zero_padding, [tf.shape(zero_padding)], 'zero_padding')
         # Concatenate `a_as_vector` with the padding.
-        self.clicked_entities = tf.concat([self.clicked_entities, zero_padding], 0)
+        # self.clicked_entities = tf.concat([self.clicked_entities, zero_padding], 0)
         clicked_entities = tf.reshape(self.clicked_entities, shape=[-1, args.max_title_length])
 
-        clicked_entities = tf.Print(clicked_entities, [tf.shape(clicked_entities)], "reshaped clicked_entities:")
+        # clicked_entities = tf.Print(clicked_entities, [tf.shape(clicked_entities)], "reshaped clicked_entities:")
         with tf.variable_scope('kcnn', reuse=tf.AUTO_REUSE):  # reuse the variables of KCNN
             # (batch_size * max_click_history, title_embedding_length)
             # title_embedding_length = n_filters_for_each_size * n_filter_sizes
@@ -118,13 +118,13 @@ class DKN(object):
             embedded_entities = tf.nn.embedding_lookup(self.entity_embeddings, entities)
         else:
             entities = entities[:, 0]
-            entities = tf.Print(entities, [tf.shape(entities), tf.shape(self.users)], "entities + self.users: ")
+            # entities = tf.Print(entities, [tf.shape(entities), tf.shape(self.users)], "entities + self.users: ")
             if clicked:  # reshape the users to (batch_size*history_length, title_length)
                 repeats = np.full(args.batch_size, args.max_click_history)
                 print(repeats)
                 users = tf.repeat(self.users, repeats=repeats, axis=0)
 
-                users = tf.Print(users, [tf.shape(users), repeats], "entities + repeats: ")
+                # users = tf.Print(users, [tf.shape(users), repeats], "entities + repeats: ")
 
                 batches_users = tf.split(users, args.max_click_history, axis=0)
                 batches_entities = tf.split(entities, args.max_click_history, axis=0)
@@ -224,11 +224,10 @@ class DKN(object):
         return sess.run([self.optimizer, self.loss], feed_dict)
 
     def eval(self, sess, feed_dict):
-        self.labels = tf.Print(self.labels, [tf.shape(self.labels)], 'labels shape')
-        self.scores = tf.Print(self.scores, [tf.shape(self.scores)], 'scores shape')
+
         labels, scores = sess.run([self.labels, self.scores], feed_dict)
         auc = roc_auc_score(y_true=labels, y_score=scores)
         scores[scores > 0.5] = 1
         scores[scores <= 0.5] = 0
         f1 = f1_score(y_true=labels, y_pred=scores)
-        return auc, f1
+        return labels, scores, auc, f1
