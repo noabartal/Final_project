@@ -20,7 +20,6 @@ def train(args, train_data, test_data, kgcn):
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         sess.run(tf.local_variables_initializer())
-
         for step in range(args.n_epochs):
             # training
             start_list = list(range(0, (train_data.size - train_data.size % args.batch_size), args.batch_size))
@@ -50,7 +49,8 @@ def eval_batches(sess, model, test_data, args):
         labels, scores, auc, f1 = model.eval(sess, get_feed_dict(model, test_data, start, end))
         labels_list = np.append(labels_list, labels)
         scores_list = np.append(scores_list, scores)
-        auc_list.append(auc)
+        if auc is not None:
+            auc_list.append(auc)
         f1_list.append(f1)
 
     auc_all = roc_auc_score(y_true=labels_list, y_score=scores_list)
