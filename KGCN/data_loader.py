@@ -127,7 +127,7 @@ def construct_adj(args, kg, entity_num):
             adj_entity[entity] = np.array([neighbors[i][0] for i in sampled_indices])
             adj_relation[entity] = np.array([neighbors[i][1] for i in sampled_indices])
         else:
-            print(entity, " is missing!")
+            # print(entity, " is missing!")
             missing_ent += 1
         num_ent += 1
     print("num ents: ", num_ent, " missing ent: ", missing_ent)

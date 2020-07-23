@@ -43,6 +43,7 @@ def add_title_column():
     test_idx = dict()
     for i in idx:
         test_idx[i] = 1
+    reader.close()
     reader = open(file, 'r', encoding='utf-8')
     for i, line in enumerate(reader.readlines()):
         user_index = line.strip().split('\t')[0]
@@ -53,6 +54,7 @@ def add_title_column():
             writer_test.write('%s\t%s\t%s\t%s\n' % (user_index, title, rating, item_id))
         else:
             writer_train.write('%s\t%s\t%s\t%s\n' % (user_index, title, rating, item_id))
+    reader.close()
     writer_train.close()
     writer_test.close()
 

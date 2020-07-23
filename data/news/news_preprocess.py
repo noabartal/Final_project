@@ -5,11 +5,11 @@ import numpy as np
 
 PATTERN1 = re.compile('[^A-Za-z]')
 PATTERN2 = re.compile('[ ]{2,}')
-WORD_FREQ_THRESHOLD = 1
+WORD_FREQ_THRESHOLD = 2
 ENTITY_FREQ_THRESHOLD = 1
 MAX_TITLE_LENGTH = 10
-WORD_EMBEDDING_DIM = 50
-DATASET = 'books'
+WORD_EMBEDDING_DIM = 100
+DATASET = 'news'
 
 word2freq = {}
 entity2freq = {}
@@ -139,12 +139,12 @@ def encoding_title(title, entities):
     return word_encoding, entity_encoding
 
 
-def transform(input_file, output_file):
+def transform(input_file, output_file, id_to_index):
     reader = open(input_file, encoding='utf-8')
     writer = open(output_file, 'w', encoding='utf-8')
     for line in reader:
         array = line.strip().split('\t')
-        user_id = array[0]
+        user_id = id_to_index[array[0]]
         title = array[1]
         label = array[2]
         entities = array[3]
@@ -166,6 +166,28 @@ def get_word2vec_model():
     return w2v_model
 
 
+def user_id_to_index(train, test):
+    reader_train = open(train, encoding='utf-8')
+    id_to_index = dict()
+    index = 1
+    for line in reader_train:
+        array = line.strip().split('\t')
+        user_id = array[0]
+        if user_id not in id_to_index:
+            id_to_index[user_id] = index
+            index += 1
+    reader_train.close()
+    reader_test = open(test, encoding='utf-8')
+    for line in reader_test:
+        array = line.strip().split('\t')
+        user_id = array[0]
+        if user_id not in id_to_index:
+            id_to_index[user_id] = index
+            index += 1
+    reader_test.close()
+    return id_to_index
+
+
 if __name__ == '__main__':
     path = '../' + DATASET
     print('counting frequencies of words and entities ...')
@@ -174,9 +196,11 @@ if __name__ == '__main__':
     print('constructing word2id map and entity to id map ...')
     construct_word2id_and_entity2id()
 
+    id_to_index = user_id_to_index(path+'/raw_train.txt', path+'/raw_test.txt')
+
     print('transforming training and test dataset ...')
-    transform(path+'/raw_train.txt', path+'/train.txt')
-    transform(path+'/raw_test.txt', path+'/test.txt')
+    transform(path+'/raw_train.txt', path+'/train.txt', id_to_index)
+    transform(path+'/raw_test.txt', path+'/test.txt', id_to_index)
 
     print('getting word embeddings ...')
     embeddings = np.zeros([len(word2index) + 1, WORD_EMBEDDING_DIM])

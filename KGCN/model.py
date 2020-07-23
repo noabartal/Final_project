@@ -28,6 +28,7 @@ class KGCN(object):
         self.dim = args.dim
         self.l2_weight = args.l2_weight
         self.lr = args.lr
+        self.dataset = args.dataset
         if args.aggregator == 'sum':
             self.aggregator_class = SumAggregator
         elif args.aggregator == 'concat':
@@ -88,10 +89,12 @@ class KGCN(object):
         for i in range(self.n_iter):
             if i == self.n_iter - 1:
                 aggregator = self.aggregator_class(self.batch_size, self.dim, act=tf.nn.tanh,
-                                                   load_pretrained=load_pretrained_weights, iter=i)
+                                                   load_pretrained=load_pretrained_weights, iter=i,
+                                                   dataset=self.dataset)
             else:
                 aggregator = self.aggregator_class(self.batch_size, self.dim,
-                                                   load_pretrained=load_pretrained_weights, iter=i)
+                                                   load_pretrained=load_pretrained_weights, iter=i,
+                                                   dataset=self.dataset)
             aggregators.append(aggregator)
 
             entity_vectors_next_iter = []
@@ -142,11 +145,11 @@ class KGCN(object):
 
     def load_pretrained_weights(self):
         user_emb = np.load(
-            '../KGCN/kgcn_user_embeddings_64_books_2' + '.npy')
+            '../KGCN/kgcn_user_embeddings_64_'+self.dataset+'_2' + '.npy')
         rel_emb = np.load(
-            '../KGCN/kgcn_relation_embeddings_64_books_2' + '.npy')
+            '../KGCN/kgcn_relation_embeddings_64_'+self.dataset+'_2' + '.npy')
         ent_emb = np.load(
-            '../KGCN/kgcn_entity_embeddings_64_books_2' + '.npy')
+            '../KGCN/kgcn_entity_embeddings_64_'+self.dataset+'_2' + '.npy')
         self.user_emb_matrix = tf.Variable(user_emb, dtype=np.float32, name='user_emb_matrix')
         self.relation_emb_matrix = tf.Variable(rel_emb, dtype=np.float32, name='relation_emb_matrix')
         self.entity_emb_matrix = tf.Variable(ent_emb, dtype=np.float32, name='entity_emb_matrix')

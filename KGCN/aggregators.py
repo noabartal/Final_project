@@ -15,7 +15,7 @@ def get_layer_id(layer_name=''):
 
 
 class Aggregator(object):
-    def __init__(self, batch_size, dim, dropout, act, name):
+    def __init__(self, batch_size, dim, dropout, act, name, dataset):
         if not name:
             layer = self.__class__.__name__.lower()
             name = layer + '_' + str(get_layer_id(layer))
@@ -24,6 +24,7 @@ class Aggregator(object):
         self.act = act
         self.batch_size = batch_size
         self.dim = dim
+        self.dataset = dataset
 
     def __call__(self, self_vectors, neighbor_vectors, neighbor_relations, user_embeddings):
         outputs = self._call(self_vectors, neighbor_vectors, neighbor_relations, user_embeddings)
@@ -42,7 +43,7 @@ class Aggregator(object):
         avg = False
         if not avg:
             # [batch_size, 1, 1, dim]
-            print("mix neighb: ", self.batch_size, self.dim)
+            # print("mix neighb: ", self.batch_size, self.dim)
 
             user_embeddings = tf.reshape(user_embeddings, [self.batch_size, 1, 1, self.dim])
             # user_embeddings = tf.Print(user_embeddings, [user_embeddings], 'user_embedding_mix meighbor vector')
@@ -63,16 +64,16 @@ class Aggregator(object):
 
 
 class SumAggregator(Aggregator):
-    def __init__(self, batch_size, dim, dropout=0., act=tf.nn.relu, name=None,
+    def __init__(self, batch_size, dim, dataset, dropout=0., act=tf.nn.relu, name=None,
                  load_pretrained=False, iter=None):
-        super(SumAggregator, self).__init__(batch_size, dim, dropout, act, name)
+        super(SumAggregator, self).__init__(batch_size, dim, dropout, act, name, dataset)
 
         with tf.variable_scope(self.name):
             if load_pretrained:
                 weights = np.load(
-                    '../KGCN/kgcn_agg_weights_'+str(iter)+'_64_books_2' + '.npy')
+                    '../KGCN/kgcn_agg_weights_'+str(iter)+'_64_'+self.dataset+'_2' + '.npy')
                 bias = np.load(
-                    '../KGCN/kgcn_gg_bias_'+str(iter)+'_64_books_2' + '.npy')
+                    '../KGCN/kgcn_gg_bias_'+str(iter)+'_64_'+self.dataset+'_2' + '.npy')
                 self.weights = tf.Variable(weights, dtype=np.float32, name='weights')
                 self.bias = tf.Variable(bias, dtype=np.float32, name='bias')
             else:
@@ -82,7 +83,7 @@ class SumAggregator(Aggregator):
 
     def _call(self, self_vectors, neighbor_vectors, neighbor_relations, user_embeddings):
         # [batch_size, -1, dim]
-        print("=================")
+        # print("=================")
         neighbors_agg = self._mix_neighbor_vectors(neighbor_vectors, neighbor_relations, user_embeddings)
         # neighbors_agg = tf.Print(neighbors_agg.shape, [neighbors_agg.shape], "output reshaped: ", neighbors_agg.shape)
         # [-1, dim]
