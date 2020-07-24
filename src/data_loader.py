@@ -36,6 +36,7 @@ def aggregate(train_df, max_click_history):
         indices = np.random.choice(list(range(0, df_user.shape[0])), size=max_click_history, replace=True)
         uid2words[user_id] = words[indices]
         uid2entities[user_id] = entities[indices]
+
     return uid2words, uid2entities
 
 
@@ -49,5 +50,5 @@ def transform(df, uid2words, uid2entities):
                 news_words=np.array(df['news_words'].tolist()),
                 news_entities=np.array(df['news_entities'].tolist()),
                 labels=np.array(df['label']),
-                users=np.array(df['user_id'])) # TODO: are these ids correct?
+                users=np.array(df['user_id']))
     return data

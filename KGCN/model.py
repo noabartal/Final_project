@@ -45,7 +45,7 @@ class KGCN(object):
 
     def _build_model(self, n_user, n_entity, n_relation):
         self.user_emb_matrix = tf.get_variable(
-            shape=[n_user+1, self.dim], initializer=KGCN.get_initializer(), name='user_emb_matrix')
+            shape=[n_user+2, self.dim], initializer=KGCN.get_initializer(), name='user_emb_matrix')
         self.entity_emb_matrix = tf.get_variable(
             shape=[n_entity, self.dim], initializer=KGCN.get_initializer(), name='entity_emb_matrix')
         self.relation_emb_matrix = tf.get_variable(

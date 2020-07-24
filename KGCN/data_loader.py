@@ -3,9 +3,9 @@ import os
 
 
 def load_data(args):
-    n_user, n_item, train_data, eval_data, test_data = load_rating(args)
-    n_entity, n_relation, adj_entity, adj_relation = load_kg(args)
-
+    n_user, n_item, train_data, eval_data, test_data, all_items = load_rating(args)
+    n_entity, n_relation, adj_entity, adj_relation = load_kg(args, all_items)
+    print("n entity: ", n_entity)
     print('data loaded.')
 
     return n_user, n_item, n_entity, n_relation, train_data, eval_data, test_data, adj_entity, adj_relation
@@ -34,11 +34,12 @@ def load_rating(args):
     items_eval = set(eval_data[:, 1])
     users_test = set(test_data[:, 0])
     items_test = set(test_data[:, 1])
+    all_items = (users_train|users_eval)|users_test
     n_user = len((users_train|users_eval)|users_test)
     n_item = len((items_train|items_eval)|items_test)
     print("n_users: ", n_user)
     print("n_items: ", n_item)
-    return n_user, n_item, train_data, eval_data, test_data
+    return n_user, n_item, train_data, eval_data, test_data, all_items
 
 # split train to val + train
 def dataset_split(rating_np, args, split_test=True):
@@ -68,7 +69,7 @@ def dataset_split(rating_np, args, split_test=True):
     return train_data, eval_data , test_data
 
 
-def load_kg(args):
+def load_kg(args, all_items):
     print('reading KG file ...')
 
     # reading kg file
@@ -79,13 +80,16 @@ def load_kg(args):
         kg_np = np.loadtxt(kg_file + '.txt', dtype=np.int64)
         np.save(kg_file + '.npy', kg_np)
 
-    n_entity = len(set(kg_np[:, 0]) | set(kg_np[:, 2]))
+    n_entity = len(set(kg_np[:, 0]) | set(kg_np[:, 2]) | all_items)
+    print("n_entity: ", n_entity)
     n_relation = len(set(kg_np[:, 1]))
 
-    kg = construct_kg(kg_np)
-    adj_entity, adj_relation = construct_adj(args, kg, n_entity)
+    max_idx = max(np.amax(kg_np[:, 0]), np.amax(kg_np[:, 2]))
 
-    return n_entity, n_relation, adj_entity, adj_relation
+    kg = construct_kg(kg_np)
+    adj_entity, adj_relation = construct_adj(args, kg, max_idx)
+
+    return max_idx, n_relation, adj_entity, adj_relation
 
 
 def construct_kg(kg_np):
