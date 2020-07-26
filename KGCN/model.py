@@ -64,9 +64,6 @@ class KGCN(object):
 
         # [batch_size]
         self.scores = tf.reduce_sum(self.user_embeddings * self.item_embeddings, axis=1)
-        # print("user_embeddings shape: ", self.user_embeddings.shape)
-        # print("item_embeddings shape: ", self.item_embeddings.shape)
-        # print("scores shape: ", self.scores.shape)
         self.scores_normalized = tf.sigmoid(self.scores)
 
     def get_neighbors(self, seeds):
@@ -78,7 +75,6 @@ class KGCN(object):
             neighbor_relations = tf.reshape(tf.gather(self.adj_relation, entities[i]), [self.batch_size, -1])
             entities.append(neighbor_entities)
             relations.append(neighbor_relations)
-        # print("get neighbors entities: ", entities[0].shape, " len: ", len(entities))
         return entities, relations
 
     def aggregate(self, entities, relations, load_pretrained_weights=False):
@@ -110,9 +106,7 @@ class KGCN(object):
             entity_vectors = entity_vectors_next_iter
             # print("entity vectors: ", len(entity_vectors))
         # at the final iteration only one "hop" is left, therefore only one item is in the list
-        # print("entity vectors[0]: ", entity_vectors[0].shape)
         res = tf.reshape(entity_vectors[0], [self.batch_size, self.dim])
-        # print("res shape: ", res.shape)
         return res, aggregators
 
     def _build_train(self):
@@ -133,8 +127,6 @@ class KGCN(object):
     def eval(self, sess, feed_dict):
         labels, scores = sess.run([self.labels, self.scores_normalized], feed_dict)
         auc = roc_auc_score(y_true=labels, y_score=scores)
-        # print("scores: ", scores)
-        # print("labels: ", labels)
         scores[scores >= 0.5] = 1
         scores[scores < 0.5] = 0
         f1 = f1_score(y_true=labels, y_pred=scores)

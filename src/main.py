@@ -14,7 +14,7 @@ import os
 # DATASET = 'books'
 DATASET = 'news'
 
-batch_size = 32
+batch_size = 128
 
 # import os
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -51,14 +51,14 @@ parser.add_argument('--test_file', type=str, default='../data/' + DATASET +'/tes
 parser.add_argument('--transform', type=bool, default=True, help='whether to transform entity embeddings')
 parser.add_argument('--dataset', type=str, default=DATASET, help='dataset folder name')
 parser.add_argument('--use_context', type=bool, default=False, help='whether to use context embeddings')
-parser.add_argument('--max_click_history', type=int, default=30, help='number of sampled click history for each user')
-parser.add_argument('--n_filters', type=int, default=32, help='number of filters for each size in KCNN')
+parser.add_argument('--max_click_history', type=int, default=10, help='number of sampled click history for each user')
+parser.add_argument('--n_filters', type=int, default=128, help='number of filters for each size in KCNN')
 parser.add_argument('--filter_sizes', type=int, default=[2, 3], nargs='+',
                     help='list of filter sizes, e.g., --filter_sizes 2 3')
 parser.add_argument('--l2_weight', type=float, default=0.01, help='weight of l2 regularization')
-parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
+parser.add_argument('--lr', type=float, default=0.000001, help='learning rate')
 parser.add_argument('--batch_size', type=int, default=batch_size, help='number of samples in one batch')
-parser.add_argument('--n_epochs', type=int, default=15, help='number of training epochs')
+parser.add_argument('--n_epochs', type=int, default=40, help='number of training epochs')
 parser.add_argument('--KGE', type=str, default='kgcn',
                     help='knowledge graph embedding method, please ensure that the specified input file exists')
 parser.add_argument('--entity_dim', type=int, default=64,

@@ -55,17 +55,20 @@ if __name__ == '__main__':
     entity2neighbor = get_neighbors_for_entity(path+'triple2id.txt')
 
     if KGE_METHOD == 'kgcn':
-        full_embeddings = entity_embs = np.load('../../../KGCN/src/kgcn_entity_embeddings_' + str(ENTITY_EMBEDDING_DIM)
-                                                + '_' + DATASET + '.npy')
+        full_embeddings = entity_embs = np.load('../../../KGCN/kgcn_entity_embeddings_' + str(ENTITY_EMBEDDING_DIM)
+                                                + '_' + DATASET + '_2.npy')
     else:
         full_embeddings = np.loadtxt(KGE_METHOD + '_entity2vec_' + str(ENTITY_EMBEDDING_DIM) + '.vec')
+    # only entities in the kg
     entity_embeddings = np.zeros([len(entity2index) + 1, ENTITY_EMBEDDING_DIM])
     context_embeddings = np.zeros([len(entity2index) + 1, ENTITY_EMBEDDING_DIM])
 
     print('writing entity embeddings...')
     for entity, index in entity2index.items():
         if entity in full_entity2index:
+            # original index
             full_index = full_entity2index[entity]
+            # save with the MAPPED INDEX
             entity_embeddings[index] = full_embeddings[full_index]
             if full_index in entity2neighbor:
                 context_full_indices = entity2neighbor[full_index]

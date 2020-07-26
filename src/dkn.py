@@ -63,33 +63,19 @@ class DKN(object):
 
     def _attention(self, args):
         # (batch_size * max_click_history, max_title_length)
-        # print("self.clicked_words:", self.clicked_words)
         clicked_words = tf.reshape(self.clicked_words, shape=[-1, args.max_title_length])
-        # self.clicked_entities = tf.Print(self.clicked_entities, [tf.shape(self.clicked_entities)], "self.clicked_entities:")
-
-        # Create another vector containing zeroes to pad `a` to (2 * 3) elements.
-        # zero_padding = tf.zeros([args.max_click_history * (args.batch_size - tf.shape(self.clicked_entities)[0]), args.max_title_length],
-        #                         dtype=self.clicked_entities.dtype)
-        # zero_padding = tf.Print(zero_padding, [tf.shape(zero_padding)], 'zero_padding')
-        # Concatenate `a_as_vector` with the padding.
-        # self.clicked_entities = tf.concat([self.clicked_entities, zero_padding], 0)
         clicked_entities = tf.reshape(self.clicked_entities, shape=[-1, args.max_title_length])
 
-        # clicked_entities = tf.Print(clicked_entities, [tf.shape(clicked_entities)], "reshaped clicked_entities:")
         with tf.variable_scope('kcnn', reuse=tf.AUTO_REUSE):  # reuse the variables of KCNN
             # (batch_size * max_click_history, title_embedding_length)
-            # title_embedding_length = n_filters_for_each_size * n_filter_sizes
             clicked_embeddings = self._kcnn(clicked_words, clicked_entities, args, clicked=True)
-            # clicked_embeddings = tf.Print(clicked_embeddings, [tf.shape(clicked_embeddings)], "clicked_embeddings: ")
 
             # (batch_size, title_embedding_length)
             news_embeddings = self._kcnn(self.news_words, self.news_entities, args)
-        # news_embeddings = tf.Print(news_embeddings, [tf.shape(news_embeddings)],"news_embeddings: ")
 
         # (batch_size, max_click_history, title_embedding_length)
         clicked_embeddings = tf.reshape(
             clicked_embeddings, shape=[-1, args.max_click_history, args.n_filters * len(args.filter_sizes)])
-        # clicked_embeddings = tf.Print(clicked_embeddings, [tf.shape(clicked_embeddings)],"clicked_embeddings after reshape: ")
 
         # (batch_size, 1, title_embedding_length)
         news_embeddings_expanded = tf.expand_dims(news_embeddings, 1)
@@ -105,7 +91,6 @@ class DKN(object):
 
         # (batch_size, title_embedding_length)
         user_embeddings = tf.reduce_sum(clicked_embeddings * attention_weights_expanded, axis=1)
-        # user_embeddings = tf.Print(user_embeddings, [tf.shape(user_embeddings)],"user_embeddings: ")
 
         return user_embeddings, news_embeddings
 
@@ -113,8 +98,7 @@ class DKN(object):
         # (batch_size * max_click_history, max_title_length, word_dim) for users
         # (batch_size, max_title_length, word_dim) for news
         embedded_words = tf.nn.embedding_lookup(self.word_embeddings, words)
-        # print("entities: ", entities.shape)
-        # print("self.entity_embeddings: ", self.entity_embeddings.shape)
+
         if not CALC_EMB_PER_USER:
             embedded_entities = tf.nn.embedding_lookup(self.entity_embeddings, entities)
         else:
@@ -122,7 +106,6 @@ class DKN(object):
                 entities = entities[:, 0]
                 if clicked:  # reshape the users to (batch_size*history_length, title_length)
                     repeats = np.full(args.batch_size, args.max_click_history)
-                    print(repeats)
                     users = tf.repeat(self.users, repeats=repeats, axis=0)
 
                     batches_users = tf.split(users, args.max_click_history, axis=0)
@@ -139,22 +122,15 @@ class DKN(object):
                 embedded_entities = tf.pad(embedded_entities, paddings, 'CONSTANT', constant_values=0)
             else: # dataset is 'news'
                 entities = tf.reshape(entities, shape=[-1])
-                print(entities.shape, "1 entities: ")
-                # entities = tf.Print(entities, [tf.shape(entities)], "1 entities: ")
 
                 if clicked:  # reshape the users to (batch_size*history_length, title_length)
                     repeats = np.full(args.batch_size, args.max_click_history * args.max_title_length)
-                    # print(repeats)
                     users = tf.repeat(self.users, repeats=repeats, axis=0)
                     batch_size = args.max_click_history*args.max_title_length
-                    # batches_users = tf.split(users, args.max_click_history*args.max_title_length, axis=0)
-                    # batches_entities = tf.split(entities, args.max_click_history*args.max_title_length, axis=0)
                 else:
                     repeats = np.full(args.batch_size, args.max_title_length)
                     users = tf.repeat(self.users, repeats=repeats, axis=0)
                     batch_size = args.max_title_length
-                    # batches_users = tf.split(users, args.max_title_length, axis=0)
-                    # batches_entities = tf.split(entities, args.max_title_length, axis=0)
                 batches_users = tf.split(users, batch_size, axis=0)
                 batches_entities = tf.split(entities, batch_size, axis=0)
                 embeddings_list = []
@@ -164,7 +140,6 @@ class DKN(object):
                     one_title.append(self.kgcn.get_entity_user_vector(users, _entities))
                     i += 1
                     if i % args.max_title_length == 0: # every group of max_title_length should
-                        # print("one title: ", one_title[0].shape, " ", len(one_title))
                         title_embeddings = tf.stack(one_title, axis=1)
                         one_title = []
                         embeddings_list.append(title_embeddings)
@@ -174,23 +149,22 @@ class DKN(object):
             embedded_entities = tf.layers.dense(
                 embedded_entities, units=args.entity_dim, activation=tf.nn.tanh, name='transformed_entity',
                 kernel_regularizer=tf.contrib.layers.l2_regularizer(args.l2_weight))
-        print("embedded_entities shape: ", embedded_entities.shape)
 
         # (batch_size * max_click_history, max_title_length, full_dim) for users
         # (batch_size, max_title_length, full_dim) for news
-        if args.use_context: # TODO: update this
+        if args.use_context:
+            if CALC_EMB_PER_USER:
+                raise Exception("use_context=True is not supported")
             embedded_contexts = tf.nn.embedding_lookup(self.context_embeddings, entities)
             concat_input = tf.concat([embedded_words, embedded_entities, embedded_contexts], axis=-1)
             full_dim = args.word_dim + args.entity_dim * 2
         else:
             concat_input = tf.concat([embedded_words, embedded_entities], axis=-1)
-            print("concat_input: ", concat_input.shape)
             full_dim = args.word_dim + args.entity_dim
 
         # (batch_size * max_click_history, max_title_length, full_dim, 1) for users
         # (batch_size, max_title_length, full_dim, 1) for news
         concat_input = tf.expand_dims(concat_input, -1)
-        print("concat_input extended: ", concat_input.shape)
 
         outputs = []
         for filter_size in args.filter_sizes:
@@ -205,25 +179,20 @@ class DKN(object):
             # (batch_size, max_title_length - filter_size + 1, 1, n_filters_for_each_size) for news
             conv = tf.nn.conv2d(concat_input, w, strides=[1, 1, 1, 1], padding='VALID', name='conv')
             relu = tf.nn.relu(tf.nn.bias_add(conv, b), name='relu')
-            print("relu: ", relu.shape)
 
             # (batch_size * max_click_history, 1, 1, n_filters_for_each_size) for users
             # (batch_size, 1, 1, n_filters_for_each_size) for news
             pool = tf.nn.max_pool(relu, ksize=[1, args.max_title_length - filter_size + 1, 1, 1],
                                   strides=[1, 1, 1, 1], padding='VALID', name='pool')
-            print("pool: ", pool.shape)
             outputs.append(pool)
 
         # (batch_size * max_click_history, 1, 1, n_filters_for_each_size * n_filter_sizes) for users
         # (batch_size, 1, 1, n_filters_for_each_size * n_filter_sizes) for news
         output = tf.concat(outputs, axis=-1)
-        # output = tf.Print(output, [tf.shape(output)], "output reshaped: ")
 
         # (batch_size * max_click_history, n_filters_for_each_size * n_filter_sizes) for users
         # (batch_size, n_filters_for_each_size * n_filter_sizes) for news
         output = tf.reshape(output, [-1, args.n_filters * len(args.filter_sizes)])
-        # output = tf.Print(output, [tf.shape(output)], "final output: ")
-        print("final output: ", output.shape)
         return output
 
     def _build_train(self, args):

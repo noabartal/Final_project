@@ -20,7 +20,6 @@ def split_by_entities(file, output_file, user_dict):
         unique_entities = list(dict.fromkeys(entities_id))
         for ent in unique_entities:
             all_entities[ent] = 1
-            # TODO: fix for news data
             line = '\t'.join([user, ent, is_click])
             if ent != '0' and ent != ',' and line not in seen_lines:
                 writer.write(line)
@@ -43,19 +42,16 @@ def kg_to_idx(max_idx, dataset):
     for line in reader:
         entity_1, relation, entity_2 = line.split('\t')
         entity_2 = entity_2[:-1] # remove \n at the end
-        # print(entity_1, " ", relation, " ", entity_2)
         if entity_1 in ent_to_idx:
             idx_1 = ent_to_idx[entity_1]
         else:
             idx_1 = str(max_idx)
-            # print("entity_1: ", entity_1, " idx_1 :", idx_1)
             max_idx += 1
             ent_to_idx[entity_1] = idx_1
         if entity_2 in ent_to_idx:
             idx_2 = ent_to_idx[entity_2]
         else:
             idx_2 = str(max_idx)
-            # print("entity_2: ", entity_2, " idx_2 :", idx_2)
             max_idx += 1
             ent_to_idx[entity_2] = idx_2
         writer.write('%s\t%s\t%s\n' % (idx_1, relation, idx_2))
