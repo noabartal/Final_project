@@ -47,9 +47,9 @@ class KGCN(object):
         self.user_emb_matrix = tf.get_variable(
             shape=[n_user+2, self.dim], initializer=KGCN.get_initializer(), name='user_emb_matrix')
         self.entity_emb_matrix = tf.get_variable(
-            shape=[n_entity, self.dim], initializer=KGCN.get_initializer(), name='entity_emb_matrix')
+            shape=[n_entity+1, self.dim], initializer=KGCN.get_initializer(), name='entity_emb_matrix')
         self.relation_emb_matrix = tf.get_variable(
-            shape=[n_relation, self.dim], initializer=KGCN.get_initializer(), name='relation_emb_matrix')
+            shape=[n_relation+1, self.dim], initializer=KGCN.get_initializer(), name='relation_emb_matrix')
 
         # [batch_size, dim]
         self.user_embeddings = tf.nn.embedding_lookup(self.user_emb_matrix, self.user_indices)

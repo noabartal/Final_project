@@ -29,9 +29,7 @@ def train(args, train_data, test_data, kgcn):
                 _, loss = model.train(sess, get_feed_dict(model, train_data, start, end))
             print("loss: ", loss)
             # evaluation
-            train_auc, train_f1 = model.eval(sess, get_feed_dict(model, train_data, 0, train_data.size))
             test_auc_all, test_f1_all, test_auc_mean_batches, test_f1_mean_batches = eval_batches(sess, model, test_data, args)
-            print('epoch %d    train_auc: %.4f    train_f1: %.4f' % (step, train_auc, train_f1))
             print('epoch %d     test_auc_all: %.4f  test_f1_all: %.4f   test_auc_mean_batches: %.4f    '
                   'test_f1_mean_batches: %.4f' % (step, test_auc_all, test_f1_all, test_auc_mean_batches,
                                                   test_f1_mean_batches))
