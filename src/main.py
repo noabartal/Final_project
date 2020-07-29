@@ -6,8 +6,8 @@ sys.path.append('/../')
 import KGCN.data_loader as kgcn_data_loader
 from KGCN.model import KGCN
 import os
-DATASET = 'books'
-# DATASET = 'news'
+# DATASET = 'books'
+DATASET = 'news'
 
 batch_size = 128
 
